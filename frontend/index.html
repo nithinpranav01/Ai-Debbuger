@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bug Finder | Fault Localization & Program Repair</title>
+    <meta name="description" content="AI-Assisted Bug Detection, Fault Localization, Explanation and Automated Program Repair System for C, C++, Python, and Java.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="navbar">
+            <div class="brand-group">
+                <div class="logo-badge">
+                    <span class="logo-icon">⚡</span>
+                </div>
+                <div>
+                    <h1 class="brand-title">AI Bug Finder</h1>
+                    <p class="brand-subtitle">AI-Assisted Bug Detection, Fault Localization & Automated Program Repair</p>
+                </div>
+            </div>
+            <div class="header-status-group">
+                <div class="compiler-indicator" id="compilerIndicator">
+                    <span class="status-dot online"></span>
+                    <span id="compilerStatusText">Checking toolchain...</span>
+                </div>
+                <div class="theme-badge">Research v1.0</div>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <main class="main-content">
+            <!-- LEFT PANEL: Editor & Controls -->
+            <section class="panel editor-panel">
+                <div class="panel-header">
+                    <div class="control-row">
+                        <div class="lang-selector-group">
+                            <label for="langSelect" class="control-label">Target Language:</label>
+                            <div class="lang-buttons" id="langButtons">
+                                <button type="button" class="lang-btn active" data-lang="python">Python</button>
+                                <button type="button" class="lang-btn" data-lang="cpp">C++</button>
+                                <button type="button" class="lang-btn" data-lang="c">C</button>
+                                <button type="button" class="lang-btn" data-lang="java">Java</button>
+                            </div>
+                        </div>
+
+                        <div class="sample-loader-group">
+                            <label for="sampleSelect" class="control-label">Load Test Case:</label>
+                            <select id="sampleSelect" class="select-dropdown">
+                                <option value="" disabled selected>Select Sample...</option>
+                                <option value="multi_bug">★ Multiple Bugs on Different Lines</option>
+                                <option value="off_by_one">Array Out-of-Bounds (Off-by-One)</option>
+                                <option value="clean">Clean Valid Program</option>
+                                <option value="syntax_error">Syntax / Missing Token Error</option>
+                                <option value="assignment_in_cond">Assignment in Condition Error</option>
+                                <option value="division_by_zero">Division by Zero</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons-group">
+                        <button id="btnAnalyze" class="btn btn-primary">
+                            <span class="btn-icon">▶</span> Analyze Code
+                        </button>
+                        <button id="btnApplyFix" class="btn btn-success" disabled>
+                            <span class="btn-icon">✓</span> Apply All Fixes
+                        </button>
+                        <button id="btnRestoreCode" class="btn btn-warning" style="display: none;">
+                            <span class="btn-icon">↺</span> Restore Original Code
+                        </button>
+                        <button id="btnReanalyze" class="btn btn-secondary" disabled>
+                            <span class="btn-icon">↻</span> Re-Analyze
+                        </button>
+                        <button id="btnClear" class="btn btn-ghost">Clear</button>
+                    </div>
+                </div>
+
+                <!-- CODE EDITOR WORKSPACE -->
+                <div class="editor-workspace">
+                    <div class="editor-meta-bar">
+                        <span class="file-tab" id="activeFileTab">source.py</span>
+                        <span class="cursor-pos" id="cursorPosInfo">Line 1, Col 1</span>
+                    </div>
+                    <div class="editor-wrapper">
+                        <div class="line-gutter" id="lineGutter">
+                            <div class="line-no">1</div>
+                        </div>
+                        <div class="gutter-markers" id="gutterMarkers"></div>
+                        <textarea id="codeEditor" spellcheck="false" placeholder="Enter or paste source code here..."></textarea>
+                    </div>
+                </div>
+
+                <!-- TEST INPUT DRAWER -->
+                <div class="input-drawer">
+                    <details>
+                        <summary class="drawer-summary">Optional Test Stdin / Arguments</summary>
+                        <textarea id="testInput" class="test-input-box" placeholder="Enter optional stdin for program execution..."></textarea>
+                    </details>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: Research Dashboard, Faults, and Diff View -->
+            <section class="panel results-panel">
+                <!-- METRICS & STATUS BANNER -->
+                <div class="status-banner" id="statusBanner">
+                    <div class="status-lead">
+                        <span class="status-badge state-ready" id="statusBadge">READY</span>
+                        <span class="status-headline" id="statusHeadline">Ready for analysis</span>
+                    </div>
+                    <div class="status-details-sub" id="statusSubtext">Select a language and click "Analyze Code".</div>
+                </div>
+
+                <!-- RESEARCH METRICS BAR -->
+                <div class="metrics-grid" id="metricsGrid">
+                    <div class="metric-card">
+                        <div class="metric-label">Language</div>
+                        <div class="metric-value" id="mValLang">PYTHON</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Lines of Code</div>
+                        <div class="metric-value" id="mValLoc">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Complexity</div>
+                        <div class="metric-value" id="mValComplexity">1</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Analysis Time</div>
+                        <div class="metric-value" id="mValTime">0.0 ms</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Bugs Detected</div>
+                        <div class="metric-value highlight-num" id="mValBugs">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Fixes Validated</div>
+                        <div class="metric-value success-num" id="mValValidated">0</div>
+                    </div>
+                </div>
+
+                <!-- TABS: Bug Inspection vs Program Diff -->
+                <div class="results-tab-header">
+                    <button class="tab-btn active" data-tab="faultsTab">Detected Faults & Localization</button>
+                    <button class="tab-btn" data-tab="diffTab" id="diffTabBtn">Source Diff & Verification</button>
+                </div>
+
+                <div class="tab-content active" id="faultsTab">
+                    <!-- DEFECT NAVIGATOR BAR -->
+                    <div class="bug-navigator-bar" id="bugNavigatorBar" style="display: none;">
+                        <div class="navigator-left">
+                            <span class="nav-label">Defect Navigator:</span>
+                            <button id="btnPrevBug" class="nav-btn" type="button">◄ Previous</button>
+                            <span class="nav-indicator" id="navIndicator">Bug 1 of 1</span>
+                            <button id="btnNextBug" class="nav-btn" type="button">Next ►</button>
+                        </div>
+                        <div class="navigator-right">
+                            <span class="progress-pill" id="repairProgressPill">Initial: 0 bugs</span>
+                        </div>
+                    </div>
+
+                    <!-- BUG SUMMARY BAR -->
+                    <div class="bug-summary-box" id="bugSummaryBox" style="display: none;">
+                        <div class="summary-box-title" id="summaryBoxTitle">TOTAL BUGS DETECTED: 0</div>
+                        <div class="summary-chips-row" id="summaryChipsRow"></div>
+                    </div>
+
+                    <!-- BUG CARDS CONTAINER -->
+                    <div class="bug-cards-container" id="bugCardsContainer">
+                        <div class="empty-state" id="emptyStateMsg">
+                            <div class="empty-icon">🔍</div>
+                            <h3>No Analysis Performed Yet</h3>
+                            <p>Submit source code to execute syntax validation, AST fault localization, evidence fusion, and automated program repair.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="diffTab">
+                    <!-- DIFF VIEWER -->
+                    <div class="diff-container" id="diffContainer">
+                        <div class="diff-header-row">
+                            <div class="diff-col-title">Original Source Code</div>
+                            <div class="diff-col-title">Candidate Repaired Program</div>
+                        </div>
+                        <div class="diff-body" id="diffBody">
+                            <p class="empty-diff-msg">No repairs generated yet. Run analysis on a buggy program to view side-by-side program diff.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <span>AI Bug Finder Research Prototype | Automated Fault Localization & Program Repair</span>
+            <span>Deterministic AST Coordinates + Multi-Source Evidence Fusion</span>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
